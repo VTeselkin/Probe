@@ -53,7 +53,7 @@
       (castellated_pads yes)
     )
     (pad_to_mask_clearance 0)
-    (grid_origin 83.569 103.1044)
+    (grid_origin 118.819 102.1044)
     (pcbplotparams
       (layerselection 0x00010fc_ffffffff)
       (disableapertmacros false)
@@ -926,8 +926,8 @@
       (effects (font (size 1.524 1.524) (thickness 0.3)) (justify mirror))
       (tstamp 4dc8ce8f-7fb0-40e1-a7c3-1bb047af0910)
     )
-    (fp_text value "iFly" (at 0.08 -1.105) (layer "B.SilkS") hide
-      (effects (font (size 1.524 1.524) (thickness 0.3)) (justify mirror))
+    (fp_text value "Probe Power v1.1" (at 0.875 -4.325) (layer "B.SilkS")
+      (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
       (tstamp 8be4e363-55a0-4dcc-b6ec-473499c15072)
     )
     (fp_poly (pts
@@ -2331,9 +2331,6 @@
   (gr_circle (center 100 100) (end 114.1 100) (layer "Edge.Cuts") (width 0.1) (fill none) (tstamp 776eeb77-20f8-48ed-aeb9-393f867b986f))
   (gr_circle (center 100.002091 88.000172) (end 101.702091 88.000172) (layer "Edge.Cuts") (width 0.1) (fill none) (tstamp c47413fb-903d-495a-8602-c32578bde61b))
   (gr_circle (center 89.619 106) (end 91.319 106) (layer "Edge.Cuts") (width 0.1) (fill none) (tstamp d5b0f692-f6e3-49e6-a868-9e5fbc3380af))
-  (gr_text "© 2025 \nAeroSoft" (at 100.094 111.7044) (layer "B.SilkS") (tstamp de68b61c-dffc-467c-b567-f36b0ac00789)
-    (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
-  )
   (gr_text "Charger" (at 91.469 95.4794 60) (layer "B.SilkS") (tstamp fc09bf2f-1899-41a7-bca6-566cfa2db460)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )

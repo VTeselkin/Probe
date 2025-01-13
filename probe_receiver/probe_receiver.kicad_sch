@@ -1053,7 +1053,7 @@
     (property "Value" "R1K" (id 1) (at 195.58 77.4699 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "Resistor_SMD:R_0201_0603Metric" (id 2) (at 191.262 76.2 90)
+    (property "Footprint" "Resistor_SMD:R_0603_1608Metric" (id 2) (at 191.262 76.2 90)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 193.04 76.2 0)
@@ -1104,7 +1104,7 @@
     (property "Value" "R1K" (id 1) (at 193.04 45.7199 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "Resistor_SMD:R_0201_0603Metric" (id 2) (at 188.722 44.45 90)
+    (property "Footprint" "Resistor_SMD:R_0603_1608Metric" (id 2) (at 188.722 44.45 90)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 190.5 44.45 0)
@@ -1139,7 +1139,7 @@
     (uuid 2a8476bf-0961-4956-a574-8948f6fba40c)
     (property "Reference" "R1" (id 0) (at 161.29 45.72 90))
     (property "Value" "R39" (id 1) (at 161.29 48.26 90))
-    (property "Footprint" "Resistor_SMD:R_0201_0603Metric" (id 2) (at 161.29 53.848 90)
+    (property "Footprint" "Resistor_SMD:R_0603_1608Metric" (id 2) (at 161.29 53.848 90)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 161.29 52.07 0)
@@ -1383,13 +1383,13 @@
       (reference "Q1") (unit 1) (value "2N2907A") (footprint "Package_TO_SOT_THT:TO-18-3")
     )
     (path "/2a8476bf-0961-4956-a574-8948f6fba40c"
-      (reference "R1") (unit 1) (value "R39") (footprint "Resistor_SMD:R_0201_0603Metric")
+      (reference "R1") (unit 1) (value "R39") (footprint "Resistor_SMD:R_0603_1608Metric")
     )
     (path "/0ee65aa9-7553-4e36-9c0f-37531b66b588"
-      (reference "R2") (unit 1) (value "R1K") (footprint "Resistor_SMD:R_0201_0603Metric")
+      (reference "R2") (unit 1) (value "R1K") (footprint "Resistor_SMD:R_0603_1608Metric")
     )
     (path "/05a92e07-fb02-487b-9422-f9dcd938e639"
-      (reference "R3") (unit 1) (value "R1K") (footprint "Resistor_SMD:R_0201_0603Metric")
+      (reference "R3") (unit 1) (value "R1K") (footprint "Resistor_SMD:R_0603_1608Metric")
     )
     (path "/3a754a86-fa7b-4cf0-aebc-1a1b1711d1e1"
       (reference "U1") (unit 1) (value "TSSP4038") (footprint "OptoDevice:Vishay_MINICAST-3Pin")
