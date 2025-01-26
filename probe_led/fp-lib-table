@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name "IRM-H638T")(type "KiCad")(uri "${KIPRJMOD}/IRM-H638T-TR2")(options "")(descr ""))
+)
