@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name "HE721C0510")(type "KiCad")(uri "${KIPRJMOD}/HE721C0510/HE721C0510.kicad_sym")(options "")(descr ""))
+  (lib (name "IRM-H638T-TR2")(type "KiCad")(uri "${KIPRJMOD}/IRM-H638T-TR2/2025-01-22_23-13-21.kicad_sym")(options "")(descr ""))
+)
