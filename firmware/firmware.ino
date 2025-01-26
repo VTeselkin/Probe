@@ -1,4 +1,4 @@
-
+#include "tiny_IRremote.h"
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 
@@ -7,25 +7,41 @@
 #define comparator_disable() (ACSR |= _BV(ACD))
 #define comparator_enable() (ACSR &= ~_BV(ACD))
 
-const int switchPin = 2;
-const int IRled = 1;
-const int minXmtLoops = 2000;  //2000 x 26usec = 52msec
-volatile bool isTousch = false;
+#define IR_LED_PIN PB0       // Пин для ИК-светодиода
+#define LOW_POW_LED_PIN PB1  // Пин для led low power
+#define TOUCH_PIN PB2        // Пин для touch
+#define LOW_POW_PIN PB3      // Пин для low power
+#define IR_RECEIVER_PIN PB4  // Пин для ИК-приёмника
+#define IR_FREQ_KHZ 38
+
+// Команды
+#define CMD_REQUEST_STATUS 0xA0   // Команда для запроса статуса
+#define CMD_RESPONSE_STATUS 0xA1  // Команда для запроса статуса
+
+IRrecv irrecv(IR_RECEIVER_PIN);
+IRsend irsend(IR_LED_PIN);
+decode_results results;  // Для хранения данных от приёмника
+
+const int debounceDelay = 30;  // Задержка для обработки дребезга (мс)
+const int minXmtLoops = 1;     //2000 x 26usec = 52msec
+
+volatile bool isTouch = false;
+volatile bool isIRsend = false;
 
 void setup() {
-  // Настройка неиспользуемых пинов для минимизации энергопотребления
-
-  pinMode(0, OUTPUT);
-  digitalWrite(0, LOW);
-  pinMode(3, OUTPUT);
-  digitalWrite(3, LOW);
-  pinMode(4, OUTPUT);
-  digitalWrite(4, LOW);
-
   // Настройка используемых пинов
-  pinMode(switchPin, INPUT);  // Кнопка с подтяжкой
-  pinMode(IRled, OUTPUT);            // Светодиод как выход
-  digitalWrite(IRled, LOW);          // Выключить светодиод
+  pinMode(TOUCH_PIN, INPUT_PULLUP);  // Кнопка с подтяжкой
+  pinMode(IR_LED_PIN, OUTPUT);       // Светодиод как выход
+  pinMode(LOW_POW_LED_PIN, OUTPUT);  // Светодиод как выход
+  pinMode(LOW_POW_PIN, INPUT);       // Вход низкого уровня заряда 1 - высокий уровень (>2.4V) 0 - низкий уровень (<2.4V)
+  pinMode(IR_RECEIVER_PIN, INPUT);   // Вход и IR Led reciver
+
+  irrecv.enableIRIn();
+  irsend.enableIROut(IR_FREQ_KHZ);
+
+  digitalWrite(IR_LED_PIN, LOW);       // Выключить светодиод
+  digitalWrite(LOW_POW_LED_PIN, LOW);  // Выключить светодиод
+
 }  // setup
 
 void sleep() {
@@ -35,12 +51,12 @@ void sleep() {
   // Например, _BV(PCIE) для ATtiny85 означает 0b00000010.
   GIMSK |= _BV(PCIE);
 
-  // Когда на пине PCINT2 происходит изменение уровня (LOW → HIGH или HIGH → LOW), генерируется прерывание PCINT0_vect, и микроконтроллер просыпается.
-  PCMSK |= _BV(PCINT2);
+  PCMSK |= _BV(PCINT2) | _BV(PCINT4);  // Когда на пине PCINT2 и PCINT4 происходит изменение уровня (LOW → HIGH или HIGH → LOW), генерируется прерывание PCINT0_vect, и микроконтроллер просыпается.
+
   comparator_disable();
   adc_disable();  // ADC off
   PRR |= _BV(PRTIM0) | _BV(PRTIM1) | _BV(PRUSI);
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);  // replaces above statement(?DW-what does this comment mean?)
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
   sleep_enable();  // Sets the Sleep Enable bit in the MCUCR Register (SE BIT)
   sei();           // Enable interrupts
@@ -49,9 +65,9 @@ void sleep() {
   //This is the point in the program flow where the CPU waits in low power mode until interrupt occurs.
   //Execution continues from this point when interrupt occurs (when probe touches and switch opens).
 
-  cli();                  // Disable interrupts
-  PCMSK &= ~_BV(PCINT2);  // Turn off PB1 as interrupt pin
-  sleep_disable();        // Clear SE bit
+  cli();                                  // Disable interrupts
+  PCMSK &= ~(_BV(PCINT2) | _BV(PCINT4));  // Turn off PB2 and PB4 as interrupt pins
+  sleep_disable();                        // Clear SE bit
 
   comparator_enable();
   adc_enable();  // ADC on
@@ -64,43 +80,53 @@ void sleep() {
 ISR(PCINT0_vect) {
   // This is called when the interrupt occurs, No code is here so it immediately returns to point in program flow
   //following the statement in the sleep() function that initially put the CPU to sleep.
-  // pinMode(switchPin, INPUT_PULLUP);  // Восстановить кнопку
-  // pinMode(IRled, OUTPUT);  // Восстановить светодиод
-  // digitalWrite(IRled, LOW);
-  isTousch = true;
+  if (digitalRead(TOUCH_PIN) == HIGH) {
+    isTouch = true;
+  }
+  if (digitalRead(IR_RECEIVER_PIN) == HIGH) {
+    isIRsend = true;
+  }
+}
+
+
+
+
+bool isLowPower() {
+  return digitalRead(LOW_POW_PIN) == LOW;
+}
+
+void handleTouch() {
+  if (isTouch) {
+    isTouch = false;
+    delay(debounceDelay);
+    int counter = minXmtLoops;
+    bool isPower = isLowPower();
+    while (counter-- >= 0 || digitalRead(TOUCH_PIN) == HIGH) {
+      irsend.sendNEC(isPower, 16);
+    }
+  }
+}
+
+void handleIRCommand() {
+  if (isIRsend) {
+    isIRsend = false;
+    if (irrecv.decode(&results)) {
+      if (results.value == CMD_REQUEST_STATUS) {
+        int counter = minXmtLoops;
+        bool isPower = isLowPower();
+        while (counter-- >= 0 && isIRsend) {
+          irsend.sendNEC(isPower, 16);
+        }
+      }
+      irrecv.resume();
+    }
+  }
 }
 
 void loop() {
-  int i = minXmtLoops;  //now awake, we will send at least this many cycles of 38KHz for switch debounce
-
-
-  if (isTousch) {
-    delay(50);  // Optional: Adjust debounce time if needed
-  }
-
-  while ((digitalRead(switchPin) == HIGH) || isTousch)  //Expecting a normally closed switch
-  {
-    isTousch = true;
-    // 38 kHz is about 13 microseconds high and 13 microseconds low
-    digitalWrite(IRled, HIGH);  // this takes about 1 microsecond to happen
-    delayMicroseconds(12);      // hang out for 12 microseconds
-    digitalWrite(IRled, LOW);   // this also takes about 1 microsecond
-    delayMicroseconds(12);      // hang out for 12 microseconds
-
-    if (i > 0) {
-      i--;  //decrement debounce counter
-    } else {
-      isTousch = false;
-    }
-  }
-
-  delay(50);  //now that switch has closed (probe no longer touching), 100msec delay for debounce before sleeping
-  isTousch = false;
-
-  if (digitalRead(switchPin) == LOW) {
-    // Перед сном: отключить пины
-    // pinMode(switchPin, INPUT);  // Перевод кнопки в режим INPUT без подтяжки
-    // pinMode(IRled, INPUT);  // Перевод светодиода в режим INPUT
-    sleep();
-  }
-}  // loop
+  handleTouch();
+  handleIRCommand();
+  digitalWrite(IR_LED_PIN, LOW);       
+  delay(100);
+  sleep();
+}
