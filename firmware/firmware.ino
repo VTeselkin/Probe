@@ -23,7 +23,8 @@ IRsend irsend(IR_LED_PIN);
 decode_results results;  // Для хранения данных от приёмника
 
 const int debounceDelay = 30;  // Задержка для обработки дребезга (мс)
-const int minXmtLoops = 1;     //2000 x 26usec = 52msec
+const int minXmtLoops = 2000;     //2000 x 26usec = 52msec
+const int minLoopTime = 1;     
 
 volatile bool isTouch = false;
 volatile bool isIRsend = false;
@@ -102,7 +103,10 @@ void handleTouch() {
     int counter = minXmtLoops;
     bool isPower = isLowPower();
     while (counter-- >= 0 || digitalRead(TOUCH_PIN) == HIGH) {
-      irsend.sendNEC(isPower, 16);
+      digitalWrite(IR_LED_PIN, HIGH);  // this takes about 1 microsecond to happen
+      delayMicroseconds(12);      // hang out for 12 microseconds
+      digitalWrite(IR_LED_PIN, LOW);   // this also takes about 1 microsecond
+      delayMicroseconds(12);      // hang out for 12 microseconds
     }
   }
 }
@@ -112,7 +116,7 @@ void handleIRCommand() {
     isIRsend = false;
     if (irrecv.decode(&results)) {
       if (results.value == CMD_REQUEST_STATUS) {
-        int counter = minXmtLoops;
+        int counter = minLoopTime;
         bool isPower = isLowPower();
         while (counter-- >= 0 && isIRsend) {
           irsend.sendNEC(isPower, 16);
@@ -126,7 +130,7 @@ void handleIRCommand() {
 void loop() {
   handleTouch();
   handleIRCommand();
-  digitalWrite(IR_LED_PIN, LOW);       
+  digitalWrite(IR_LED_PIN, LOW);
   delay(100);
   sleep();
 }
