@@ -1,6 +1,7 @@
 Designator,Footprint,Quantity,Value,LCSC Part #
-5V,TestPoint_Pad_D1.0mm,1,5V,
-"D1, D10, D11, D12, D2, D3, D4, D5, D6, D7, D8, D9, IR1, IR10, IR11, IR12, IR2, IR3, IR4, IR5, IR6, IR7, IR8, IR9",LED_0603_1608Metric_Pad1.05x0.95mm_HandSolder,24,LED,
-GND,TestPoint_Pad_D1.0mm,1,GND,
-IR,TestPoint_Pad_D1.0mm,1,IR,
-"R1, R10, R11, R12, R2, R3, R4, R5, R6, R7, R8, R9",R_0603_1608Metric_Pad0.98x0.95mm_HandSolder,12,R,
+5V1,TestPoint_Pad_D1.0mm,1,5V,
+"D1, D10, D11, D2, D3, D5, D6, D7, D9",LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder,9,LED,
+GND1,TestPoint_Pad_D1.0mm,1,GND,
+IR1,TestPoint_Pad_D1.0mm,1,IR,
+"R1, R10, R11, R2, R3, R5, R6, R7, R9",R_0603_1608Metric_Pad0.98x0.95mm_HandSolder,9,R,
+"U1, U2, U3",IRM-H638T&slash_TR2_EVE-L,3,IRM-H638T_TR2,
