@@ -1,6 +1,7 @@
 #include "tiny_IRremote.h"
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
+#include <avr/power.h>
 
 #define adc_disable() (ADCSRA &= ~_BV(ADEN))
 #define adc_enable() (ADCSRA |= _BV(ADEN))
@@ -23,8 +24,8 @@ IRsend irsend(IR_LED_PIN);
 decode_results results;  // Для хранения данных от приёмника
 
 const int debounceDelay = 30;  // Задержка для обработки дребезга (мс)
-const int minXmtLoops = 2000;     //2000 x 26usec = 52msec
-const int minLoopTime = 1;     
+const int minXmtLoops = 2000;  //2000 x 26usec = 52msec
+const int minLoopTime = 1;
 
 volatile bool isTouch = false;
 volatile bool isIRsend = false;
@@ -53,9 +54,7 @@ void sleep() {
   GIMSK |= _BV(PCIE);
 
   PCMSK |= _BV(PCINT2) | _BV(PCINT4);  // Когда на пине PCINT2 и PCINT4 происходит изменение уровня (LOW → HIGH или HIGH → LOW), генерируется прерывание PCINT0_vect, и микроконтроллер просыпается.
-
-  comparator_disable();
-  adc_disable();  // ADC off
+  power_all_disable();                 // Выключаем всё ненужное
   PRR |= _BV(PRTIM0) | _BV(PRTIM1) | _BV(PRUSI);
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
@@ -69,24 +68,26 @@ void sleep() {
   cli();                                  // Disable interrupts
   PCMSK &= ~(_BV(PCINT2) | _BV(PCINT4));  // Turn off PB2 and PB4 as interrupt pins
   sleep_disable();                        // Clear SE bit
-
-  comparator_enable();
-  adc_enable();  // ADC on
+  power_all_enable();
   PRR &= ~(_BV(PRTIM0) | _BV(PRTIM1) | _BV(PRUSI));
 
 
 
 }  // sleep
-
+volatile unsigned long lastInterruptTime = 0;
 ISR(PCINT0_vect) {
-  // This is called when the interrupt occurs, No code is here so it immediately returns to point in program flow
-  //following the statement in the sleep() function that initially put the CPU to sleep.
-  if (digitalRead(TOUCH_PIN) == HIGH) {
-    isTouch = true;
+  unsigned long interruptTime = micros();        // Используем микросекунды вместо 
+  if (interruptTime - lastInterruptTime > debounceDelay) {  // Дебаунс 
+    // This is called when the interrupt occurs, No code is here so it immediately returns to point in program flow
+    //following the statement in the sleep() function that initially put the CPU to sleep.
+    if (digitalRead(TOUCH_PIN) == HIGH) {
+      isTouch = true;
+    }
+    if (irrecv.decode(&results) && results.value != 0xFFFFFFFF) {  // Проверяем, действительно ли есть сигнал
+      isIRsend = true;
+    }
   }
-  if (digitalRead(IR_RECEIVER_PIN) == HIGH) {
-    isIRsend = true;
-  }
+  lastInterruptTime = interruptTime;
 }
 
 
@@ -100,37 +101,32 @@ void handleTouch() {
   if (isTouch) {
     isTouch = false;
     delay(debounceDelay);
-    int counter = minXmtLoops;
-    bool isPower = isLowPower();
-    while (counter-- >= 0 || digitalRead(TOUCH_PIN) == HIGH) {
+    while (digitalRead(TOUCH_PIN) == HIGH) {
       digitalWrite(IR_LED_PIN, HIGH);  // this takes about 1 microsecond to happen
-      delayMicroseconds(12);      // hang out for 12 microseconds
+      delayMicroseconds(12);           // hang out for 12 microseconds
       digitalWrite(IR_LED_PIN, LOW);   // this also takes about 1 microsecond
-      delayMicroseconds(12);      // hang out for 12 microseconds
+      delayMicroseconds(12);           // hang out for 12 microseconds
     }
   }
 }
 
 void handleIRCommand() {
   if (isIRsend) {
-    isIRsend = false;
-    if (irrecv.decode(&results)) {
-      if (results.value == CMD_REQUEST_STATUS) {
-        int counter = minLoopTime;
-        bool isPower = isLowPower();
-        while (counter-- >= 0 && isIRsend) {
-          irsend.sendNEC(isPower, 16);
-        }
+    if (results.value == CMD_REQUEST_STATUS) {
+      int counter = minLoopTime;
+      bool isPower = isLowPower();
+      while (counter-- >= 0 && isIRsend) {
+        irsend.sendNEC(isPower, 16);
       }
-      irrecv.resume();
     }
+    irrecv.resume();
+    isIRsend = false;
   }
 }
 
 void loop() {
-  handleTouch();
   handleIRCommand();
+  handleTouch();
   digitalWrite(IR_LED_PIN, LOW);
-  delay(100);
   sleep();
 }
