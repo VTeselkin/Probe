@@ -3,13 +3,9 @@
 #include <avr/interrupt.h>
 #include <avr/power.h>
 
-#define adc_disable() (ADCSRA &= ~_BV(ADEN))
-#define adc_enable() (ADCSRA |= _BV(ADEN))
-#define comparator_disable() (ACSR |= _BV(ACD))
-#define comparator_enable() (ACSR &= ~_BV(ACD))
 
-#define IR_LED_PIN PB0       // Пин для ИК-светодиода
-#define LOW_POW_LED_PIN PB1  // Пин для led low power
+#define IR_LED_PIN PB1       // Пин для ИК-светодиода
+#define LOW_POW_LED_PIN PB0  // Пин для led low power
 #define TOUCH_PIN PB2        // Пин для touch
 #define LOW_POW_PIN PB3      // Пин для low power
 #define IR_RECEIVER_PIN PB4  // Пин для ИК-приёмника
@@ -29,6 +25,7 @@ const int minLoopTime = 1;
 
 volatile bool isTouch = false;
 volatile bool isIRsend = false;
+volatile bool isLow = false;
 
 void setup() {
   // Настройка используемых пинов
@@ -44,6 +41,7 @@ void setup() {
   digitalWrite(IR_LED_PIN, LOW);       // Выключить светодиод
   digitalWrite(LOW_POW_LED_PIN, LOW);  // Выключить светодиод
 
+  isTouch = digitalRead(TOUCH_PIN) == HIGH;
 }  // setup
 
 void sleep() {
@@ -53,10 +51,13 @@ void sleep() {
   // Например, _BV(PCIE) для ATtiny85 означает 0b00000010.
   GIMSK |= _BV(PCIE);
 
+  // Когда на пине PCINT2 происходит изменение уровня (LOW → HIGH или HIGH → LOW), генерируется прерывание PCINT0_vect, и микроконтроллер просыпается.
   PCMSK |= _BV(PCINT2) | _BV(PCINT4);  // Когда на пине PCINT2 и PCINT4 происходит изменение уровня (LOW → HIGH или HIGH → LOW), генерируется прерывание PCINT0_vect, и микроконтроллер просыпается.
-  power_all_disable();                 // Выключаем всё ненужное
+
+  power_all_disable();  // Выключаем всё ненужное
+
   PRR |= _BV(PRTIM0) | _BV(PRTIM1) | _BV(PRUSI);
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);  // replaces above statement(?DW-what does this comment mean?)
 
   sleep_enable();  // Sets the Sleep Enable bit in the MCUCR Register (SE BIT)
   sei();           // Enable interrupts
@@ -69,42 +70,40 @@ void sleep() {
   PCMSK &= ~(_BV(PCINT2) | _BV(PCINT4));  // Turn off PB2 and PB4 as interrupt pins
   sleep_disable();                        // Clear SE bit
   power_all_enable();
+
   PRR &= ~(_BV(PRTIM0) | _BV(PRTIM1) | _BV(PRUSI));
 
 
 
 }  // sleep
-volatile unsigned long lastInterruptTime = 0;
+
+// volatile unsigned long lastInterruptTime = 0;
 ISR(PCINT0_vect) {
-  unsigned long interruptTime = micros();        // Используем микросекунды вместо 
-  if (interruptTime - lastInterruptTime > debounceDelay) {  // Дебаунс 
-    // This is called when the interrupt occurs, No code is here so it immediately returns to point in program flow
-    //following the statement in the sleep() function that initially put the CPU to sleep.
-    if (digitalRead(TOUCH_PIN) == HIGH) {
-      isTouch = true;
-    }
-    if (irrecv.decode(&results) && results.value != 0xFFFFFFFF) {  // Проверяем, действительно ли есть сигнал
-      isIRsend = true;
-    }
+  // unsigned long interruptTime = micros();                   // Используем микросекунды вместо
+  // if (interruptTime - lastInterruptTime > debounceDelay) {  // Дебаунс
+  // This is called when the interrupt occurs, No code is here so it immediately returns to point in program flow
+  //following the statement in the sleep() function that initially put the CPU to sleep.
+  if (digitalRead(TOUCH_PIN) == HIGH) {
+    isTouch = true;
   }
-  lastInterruptTime = interruptTime;
+  if (irrecv.decode(&results) && results.value != 0xFFFFFFFF) {  // Проверяем, действительно ли есть сигнал
+    isIRsend = true;
+  }
+  // }
+  // lastInterruptTime = interruptTime;
 }
 
-
-
-
 bool isLowPower() {
-  bool isLow = digitalRead(LOW_POW_PIN) == LOW;
-  if(isLow){
-       digitalWrite(LOW_POW_LED_PIN, HIGH);
-    }
+  isLow = digitalRead(LOW_POW_PIN) == HIGH;
+  if (isLow) {
+    digitalWrite(LOW_POW_LED_PIN, HIGH);
+  }
   return isLow;
 }
 
 void handleTouch() {
   if (isTouch) {
     isTouch = false;
-    isLowPower();
     delay(debounceDelay);
     while (digitalRead(TOUCH_PIN) == HIGH) {
       digitalWrite(IR_LED_PIN, HIGH);  // this takes about 1 microsecond to happen
@@ -119,7 +118,6 @@ void handleIRCommand() {
   if (isIRsend) {
     if (results.value == CMD_REQUEST_STATUS) {
       int counter = minLoopTime;
-      bool isLow = isLowPower();
       while (counter-- >= 0 && isIRsend) {
         irsend.sendNEC(isLow, 16);
       }
@@ -130,6 +128,7 @@ void handleIRCommand() {
 }
 
 void loop() {
+  isLowPower();
   handleIRCommand();
   handleTouch();
   digitalWrite(IR_LED_PIN, LOW);
