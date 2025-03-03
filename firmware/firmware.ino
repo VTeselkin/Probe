@@ -4,11 +4,11 @@
 #include <avr/power.h>
 
 
-#define IR_LED_PIN PB1       // Пин для ИК-светодиода
-#define LOW_POW_LED_PIN PB0  // Пин для led low power
-#define TOUCH_PIN PB2        // Пин для touch
-#define LOW_POW_PIN PB3      // Пин для low power
-#define IR_RECEIVER_PIN PB4  // Пин для ИК-приёмника
+#define IR_LED_PIN PB0      //11      // Пин для ИК-светодиода
+#define LOW_POW_LED_PIN PB1 //12      // Пин для led low power
+#define TOUCH_PIN PB2       //14      // Пин для touch
+#define LOW_POW_PIN PB3     //2       // Пин для low power
+#define IR_RECEIVER_PIN PB4 //5       // Пин для ИК-приёмника
 #define IR_FREQ_KHZ 38
 
 // Команды
@@ -25,7 +25,7 @@ const int minLoopTime = 1;
 
 volatile bool isTouch = false;
 volatile bool isIRsend = false;
-volatile bool isLow = false;
+
 
 void setup() {
   // Настройка используемых пинов
@@ -33,7 +33,7 @@ void setup() {
   pinMode(IR_LED_PIN, OUTPUT);       // Светодиод как выход
   pinMode(LOW_POW_LED_PIN, OUTPUT);  // Светодиод как выход
   pinMode(LOW_POW_PIN, INPUT);       // Вход низкого уровня заряда 1 - высокий уровень (>2.4V) 0 - низкий уровень (<2.4V)
-  pinMode(IR_RECEIVER_PIN, INPUT);   // Вход и IR Led reciver
+  pinMode(IR_RECEIVER_PIN, INPUT_PULLUP);   // Вход и IR Led reciver
 
   irrecv.enableIRIn();
   irsend.enableIROut(IR_FREQ_KHZ);
@@ -94,11 +94,7 @@ ISR(PCINT0_vect) {
 }
 
 bool isLowPower() {
-  isLow = digitalRead(LOW_POW_PIN) == HIGH;
-  if (isLow) {
-    digitalWrite(LOW_POW_LED_PIN, HIGH);
-  }
-  return isLow;
+  return digitalRead(LOW_POW_PIN) == LOW;
 }
 
 void handleTouch() {
@@ -110,6 +106,9 @@ void handleTouch() {
       delayMicroseconds(12);           // hang out for 12 microseconds
       digitalWrite(IR_LED_PIN, LOW);   // this also takes about 1 microsecond
       delayMicroseconds(12);           // hang out for 12 microseconds
+      if (isLowPower() && digitalRead(LOW_POW_LED_PIN) == LOW) {
+        digitalWrite(LOW_POW_LED_PIN, HIGH);
+      }
     }
   }
 }
@@ -119,7 +118,7 @@ void handleIRCommand() {
     if (results.value == CMD_REQUEST_STATUS) {
       int counter = minLoopTime;
       while (counter-- >= 0 && isIRsend) {
-        irsend.sendNEC(isLow, 16);
+        irsend.sendNEC(isLowPower(), 16);
       }
     }
     irrecv.resume();
@@ -131,7 +130,7 @@ void loop() {
   isLowPower();
   handleIRCommand();
   handleTouch();
-  digitalWrite(IR_LED_PIN, LOW);
   digitalWrite(LOW_POW_LED_PIN, LOW);
+  digitalWrite(IR_LED_PIN, LOW);
   sleep();
 }
