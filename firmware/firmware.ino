@@ -94,12 +94,17 @@ ISR(PCINT0_vect) {
 
 
 bool isLowPower() {
-  return digitalRead(LOW_POW_PIN) == LOW;
+  bool isLow = digitalRead(LOW_POW_PIN) == LOW;
+  if(isLow){
+       digitalWrite(LOW_POW_LED_PIN, HIGH);
+    }
+  return isLow;
 }
 
 void handleTouch() {
   if (isTouch) {
     isTouch = false;
+    isLowPower();
     delay(debounceDelay);
     while (digitalRead(TOUCH_PIN) == HIGH) {
       digitalWrite(IR_LED_PIN, HIGH);  // this takes about 1 microsecond to happen
@@ -114,9 +119,9 @@ void handleIRCommand() {
   if (isIRsend) {
     if (results.value == CMD_REQUEST_STATUS) {
       int counter = minLoopTime;
-      bool isPower = isLowPower();
+      bool isLow = isLowPower();
       while (counter-- >= 0 && isIRsend) {
-        irsend.sendNEC(isPower, 16);
+        irsend.sendNEC(isLow, 16);
       }
     }
     irrecv.resume();
@@ -128,5 +133,6 @@ void loop() {
   handleIRCommand();
   handleTouch();
   digitalWrite(IR_LED_PIN, LOW);
+  digitalWrite(LOW_POW_LED_PIN, LOW);
   sleep();
 }
