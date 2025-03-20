@@ -4,11 +4,11 @@
 #include <avr/power.h>
 
 
-#define IR_LED_PIN PB0      //11      // Пин для ИК-светодиода
-#define LOW_POW_LED_PIN PB1 //12      // Пин для led low power
-#define TOUCH_PIN PB2       //14      // Пин для touch
-#define LOW_POW_PIN PB3     //2       // Пин для low power
-#define IR_RECEIVER_PIN PB4 //5       // Пин для ИК-приёмника
+#define IR_LED_PIN PB0       //11      // Пин для ИК-светодиода
+#define LOW_POW_LED_PIN PB1  //12      // Пин для led low power
+#define TOUCH_PIN PB2        //14      // Пин для touch
+#define LOW_POW_PIN PB3      //2       // Пин для low power
+#define IR_RECEIVER_PIN PB4  //5       // Пин для ИК-приёмника
 #define IR_FREQ_KHZ 38
 
 // Команды
@@ -22,6 +22,7 @@ decode_results results;  // Для хранения данных от приём
 const int debounceDelay = 30;  // Задержка для обработки дребезга (мс)
 const int minXmtLoops = 2000;  //2000 x 26usec = 52msec
 const int minLoopTime = 1;
+const unsigned long wakeTime = 1000;  // Время ожидания перед сном (мс)
 
 volatile bool isTouch = false;
 volatile bool isIRsend = false;
@@ -29,11 +30,11 @@ volatile bool isIRsend = false;
 
 void setup() {
   // Настройка используемых пинов
-  pinMode(TOUCH_PIN, INPUT_PULLUP);  // Кнопка с подтяжкой
-  pinMode(IR_LED_PIN, OUTPUT);       // Светодиод как выход
-  pinMode(LOW_POW_LED_PIN, OUTPUT);  // Светодиод как выход
-  pinMode(LOW_POW_PIN, INPUT);       // Вход низкого уровня заряда 1 - высокий уровень (>2.4V) 0 - низкий уровень (<2.4V)
-  pinMode(IR_RECEIVER_PIN, INPUT_PULLUP);   // Вход и IR Led reciver
+  pinMode(TOUCH_PIN, INPUT_PULLUP);        // Кнопка с подтяжкой
+  pinMode(IR_LED_PIN, OUTPUT);             // Светодиод как выход
+  pinMode(LOW_POW_LED_PIN, OUTPUT);        // Светодиод как выход
+  pinMode(LOW_POW_PIN, INPUT);             // Вход низкого уровня заряда 1 - высокий уровень (>2.4V) 0 - низкий уровень (<2.4V)
+  pinMode(IR_RECEIVER_PIN, INPUT_PULLUP);  // Вход и IR Led reciver
 
   irrecv.enableIRIn();
   irsend.enableIROut(IR_FREQ_KHZ);
@@ -132,5 +133,13 @@ void loop() {
   handleTouch();
   digitalWrite(LOW_POW_LED_PIN, LOW);
   digitalWrite(IR_LED_PIN, LOW);
+
+  unsigned long sleepStart = millis();
+  while (millis() - sleepStart < wakeTime) {
+    if (digitalRead(TOUCH_PIN) == HIGH) {
+      sleepStart = millis(); 
+      handleTouch();
+    }
+  }
   sleep();
 }
