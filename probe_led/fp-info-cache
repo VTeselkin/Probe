@@ -1,4 +1,4 @@
-25230475176207193
+25215942735994160
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -10079,20 +10079,6 @@ DSUB-62-HD_Socket_Vertical_P2.41x1.98mm_MountingHoles
 0
 64
 63
-Connector_FFC-FPC
-FPC_3pin_0.5mm_fingers
-
-
-0
-3
-3
-Connector_FFC-FPC
-FPC_5pin_0.5mm_fingers
-
-
-0
-5
-5
 Connector_FFC-FPC
 Hirose_FH12-6S-0.5SH_1x06-1MP_P0.50mm_Horizontal
 Hirose FH12, FFC/FPC connector, FH12-6S-0.5SH, 6 Pins per row (https://www.hirose.com/product/en/products/FH12/FH12-24S-0.5SH(55)/), generated with kicad-footprint-generator
@@ -66716,6 +66702,13 @@ Yellow 5381 Series LED
 0
 2
 2
+Library
+FPC_4pin_0.5mm_fingers
+
+
+0
+6
+6
 Module
 A20_OLINUXINO_LIME2
 A20 Olinuxino LIME2, 1.2GHz, 512-1024MB RAM, Micro-SD, NAND or eMMC, 1000Mbit Ethernet

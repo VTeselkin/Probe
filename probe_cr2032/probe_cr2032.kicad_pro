@@ -511,7 +511,7 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "probe_cr2032.step",
+      "step": "../../../ЧПУ/Центроискатель/Probe/Receiver/probe_cr2032.step",
       "svg": "",
       "vrml": ""
     },

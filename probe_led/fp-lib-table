@@ -1,3 +1,5 @@
 (fp_lib_table
+  (version 7)
   (lib (name "IRM-H638T")(type "KiCad")(uri "${KIPRJMOD}/IRM-H638T-TR2")(options "")(descr ""))
+  (lib (name "Library")(type "KiCad")(uri "${KIPRJMOD}/Library.pretty")(options "")(descr ""))
 )

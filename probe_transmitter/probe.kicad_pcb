@@ -7135,5 +7135,9 @@
 			)
 		)
 	)
+	(group ""
+		(uuid "6a59bb5a-05b1-4143-b165-eb736732a288")
+		(members "4f7cfd5c-67a1-42ef-aa96-77809c10492c" "c96847b5-fe52-4902-a4b8-a6f999fe6f00")
+	)
 	(embedded_fonts no)
 )
