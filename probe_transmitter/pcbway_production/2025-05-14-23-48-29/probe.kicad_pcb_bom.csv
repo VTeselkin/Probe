@@ -1,0 +1,12 @@
+﻿Designator,Quantity,Value,Footprint,Package,MPN,DNP,Mount_Type,Description
+", , 1, 2, 3, 4",6,,,,,,tht,
+"D4, D5",2,LED,R_0805_2012Metric,,,,smt,
+J2,1,Conn_01x06,TE_0-1734839-6_1x06-1MP_P0.5mm_Horizontal,,,,smt,"Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"
+MISO1,1,PB1,TestPoint_Pad_D1.0mm,,,,tht,
+MOSI1,1,PB0,TestPoint_Pad_D1.0mm,,,,tht,
+"Q1, Q2",2,PMST2222,SOT-23,,,,smt,
+"R1, R2, R5, R6",4,R39,R_0603_1608Metric,,,,smt,
+R7,1,R10M,R_0603_1608Metric,,,,smt,
+RES1,1,PB5,TestPoint_Pad_D1.0mm,,,,tht,
+SCL1,1,PB2,TestPoint_Pad_D1.0mm,,,,tht,
+U2,1,ATtiny84-20M,QFN-20-1EP_4x4mm_P0.5mm_EP2.6x2.6mm,,,,smt,"20MHz, 8kB Flash, 512B SRAM, 512B EEPROM, debugWIRE, QFN-20"

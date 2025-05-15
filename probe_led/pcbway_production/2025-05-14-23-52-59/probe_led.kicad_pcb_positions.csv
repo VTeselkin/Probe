@@ -1,0 +1,11 @@
+﻿pos_x,pos_y,rotation,side,designator,mpn,pack,footprint,value,mount_type
+149.93,-77.84,0.0,top,D10,,,LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder,LED,smt
+110.3,-77.84,0.0,top,D2,,,LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder,LED,smt
+129.8125,-77.84,0.0,top,D6,,,LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder,LED,smt
+98.210143,-39.170291,0.0,bottom,J3,,,FPC_4pin_0.5mm_fingers,Conn_01x06,smt
+145.0,-78.0,180.0,top,R10,,,R_0603_1608Metric_Pad0.98x0.95mm_HandSolder,R,smt
+106.0,-78.0,180.0,top,R2,,,R_0603_1608Metric_Pad0.98x0.95mm_HandSolder,R,smt
+124.0,-78.0,180.0,top,R6,,,R_0603_1608Metric_Pad0.98x0.95mm_HandSolder,R,smt
+109.96,-82.34,0.0,top,U1,,,IRM-H638T&slash_TR2_EVE-L,IRM-H638T_TR2,smt
+129.46,-82.34,0.0,top,U2,,,IRM-H638T&slash_TR2_EVE-L,IRM-H638T_TR2,smt
+149.56,-82.34,0.0,top,U3,,,IRM-H638T&slash_TR2_EVE-L,IRM-H638T_TR2,smt

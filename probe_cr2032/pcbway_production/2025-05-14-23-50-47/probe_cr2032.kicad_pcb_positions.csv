@@ -1,0 +1,14 @@
+﻿pos_x,pos_y,rotation,side,designator,mpn,pack,footprint,value,mount_type
+100.0,-100.0,0.0,top,BT1,,,BatteryHolder_MPD_BC2003_1x2032,Battery,smt
+97.269,-88.1544,-75.0,top,C1,,,R_0603_1608Metric,C4.7uF,smt
+89.05,-94.54,60.0,top,C2,,,R_0603_1608Metric,C10uF,smt
+91.494,-108.5044,45.0,top,CHR1,,,LED_0805_2012Metric,GRN,smt
+102.53,-95.936743,-30.0,bottom,J2,,,TE_0-1734839-6_1x06-1MP_P0.5mm_Horizontal,Conn_01x06,smt
+97.726206,-104.51311,-30.0,bottom,J3,,,TE_0-1734839-6_1x06-1MP_P0.5mm_Horizontal,Conn_01x06,smt
+108.719,-108.3044,-45.0,top,POW1,,,LED_0805_2012Metric,RED,smt
+97.4,-111.22,-90.0,bottom,R1,,,R_0603_1608Metric,R28K,smt
+102.77,-111.14,90.0,bottom,R2,,,R_0603_1608Metric,R470,smt
+87.994,-103.5794,180.0,top,R3,,,R_0603_1608Metric,R470,smt
+100.08,-111.14,-90.0,bottom,U1,,,SOT-23-5,MCP73831-2-OT,smt
+111.6075,-99.36,0.0,bottom,U2,,,SOT-23,MCP101-300D,smt
+90.12,-94.27,60.0,bottom,USBC1,,,USB_C_Receptacle_GCT_USB4135-GF-A_6P_TopMnt_Horizontal,USB_C_Receptacle_PowerOnly_6P,smt

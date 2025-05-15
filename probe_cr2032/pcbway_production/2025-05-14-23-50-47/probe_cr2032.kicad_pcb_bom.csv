@@ -1,0 +1,12 @@
+﻿Designator,Quantity,Value,Footprint,Package,MPN,DNP,Mount_Type,Description
+BT1,1,Battery,BatteryHolder_MPD_BC2003_1x2032,,,,smt,Multiple-cell battery
+C1,1,C4.7uF,R_0603_1608Metric,,,,smt,
+C2,1,C10uF,R_0603_1608Metric,,,,smt,
+CHR1,1,GRN,LED_0805_2012Metric,,,,smt,
+"J2, J3",2,Conn_01x06,TE_0-1734839-6_1x06-1MP_P0.5mm_Horizontal,,,,smt,"Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"
+POW1,1,RED,LED_0805_2012Metric,,,,smt,
+R1,1,R28K,R_0603_1608Metric,,,,smt,
+"R2, R3",2,R470,R_0603_1608Metric,,,,smt,
+U1,1,MCP73831-2-OT,SOT-23-5,,,,smt,
+U2,1,MCP101-300D,SOT-23,,,,smt,"Microcontroller reset monitor, 3.00V threshold, active high output"
+USBC1,1,USB_C_Receptacle_PowerOnly_6P,USB_C_Receptacle_GCT_USB4135-GF-A_6P_TopMnt_Horizontal,,,,smt,
