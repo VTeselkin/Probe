@@ -3982,7 +3982,7 @@
 	)
 	(symbol
 		(lib_id "Device:LED")
-		(at 143.51 93.98 0)
+		(at 143.51 93.98 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3990,7 +3990,7 @@
 		(dnp no)
 		(uuid "e48e4522-8919-4e9b-8345-53c95d6ac7a7")
 		(property "Reference" "CHR1"
-			(at 143.51 91.44 0)
+			(at 143.51 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3998,7 +3998,7 @@
 			)
 		)
 		(property "Value" "GRN"
-			(at 143.51 97.79 0)
+			(at 143.51 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)

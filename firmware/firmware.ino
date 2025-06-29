@@ -4,12 +4,20 @@
 #include <avr/power.h>
 
 
-#define IR_LED_PIN PB0       //11      // Пин для ИК-светодиода
-#define LOW_POW_LED_PIN PB1  //12      // Пин для led low power
-#define TOUCH_PIN PB2        //14      // Пин для touch
-#define LOW_POW_PIN PB3      //2       // Пин для low power
-#define IR_RECEIVER_PIN PB4  //5       // Пин для ИК-приёмника
-#define IR_FREQ_KHZ 38
+// #define IR_LED_PIN PB0       //11      // Пин для ИК-светодиода
+// #define LOW_POW_LED_PIN PB1  //12      // Пин для led low power
+// #define TOUCH_PIN PB2        //14      // Пин для touch
+// #define LOW_POW_PIN PB3      //2       // Пин для low power
+// #define IR_RECEIVER_PIN PB4  //5       // Пин для ИК-приёмника
+// #define IR_FREQ_KHZ 38
+
+// Пины, соответствующие ATtiny84
+#define IR_LED_PIN A1        // PA1 - IR светодиоды (через транзистор)
+#define LOW_POW_LED_PIN A2   // PA2 - индикатор low power (через транзистор)
+#define TOUCH_PIN 2          // PB2 - touch
+#define LOW_POW_PIN A0       // PA0 - вход низкого напряжения
+#define IR_RECEIVER_PIN A3   // PA3 - IR-приемник (data output)
+
 
 // Команды
 #define CMD_REQUEST_STATUS 0xA0   // Команда для запроса статуса
