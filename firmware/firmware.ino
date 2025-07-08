@@ -1,4 +1,4 @@
-#include "tiny_IRremote.h"
+#include <IRremote.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <avr/power.h>
@@ -9,14 +9,14 @@
 // #define TOUCH_PIN PB2        //14      // Пин для touch
 // #define LOW_POW_PIN PB3      //2       // Пин для low power
 // #define IR_RECEIVER_PIN PB4  //5       // Пин для ИК-приёмника
-// #define IR_FREQ_KHZ 38
+#define IR_FREQ_KHZ 38
 
 // Пины, соответствующие ATtiny84
-#define IR_LED_PIN A1        // PA1 - IR светодиоды (через транзистор)
-#define LOW_POW_LED_PIN A2   // PA2 - индикатор low power (через транзистор)
-#define TOUCH_PIN 2          // PB2 - touch
-#define LOW_POW_PIN A0       // PA0 - вход низкого напряжения
-#define IR_RECEIVER_PIN A3   // PA3 - IR-приемник (data output)
+#define IR_LED_PIN A1       // PA1 - IR светодиоды (через транзистор)
+#define LOW_POW_LED_PIN A2  // PA2 - индикатор low power (через транзистор)
+#define TOUCH_PIN 2         // PB2 - touch
+#define LOW_POW_PIN A0      // PA0 - вход низкого напряжения
+#define IR_RECEIVER_PIN A3  // PA3 - IR-приемник (data output)
 
 
 // Команды
@@ -25,6 +25,7 @@
 
 IRrecv irrecv(IR_RECEIVER_PIN);
 IRsend irsend(IR_LED_PIN);
+
 decode_results results;  // Для хранения данных от приёмника
 
 const int debounceDelay = 30;  // Задержка для обработки дребезга (мс)
@@ -54,52 +55,60 @@ void setup() {
 }  // setup
 
 void sleep() {
+  // Разрешаем прерывания на изменение состояния пинов:
+  // - PA2 (PCINT2): TOUCH_PIN
+  // - PA3 (PCINT3): IR_RECEIVER_PIN
+  // - PB2 (PCINT10): возможно, тоже используется как TOUCH_PIN в зависимости от макросов
 
-  // разрешает генерацию прерываний на изменение состояния пинов, заданных в регистре PCMSK.
-  // Макрос _BV (Bit Value) вычисляет значение, при котором только указанный бит равен 1, а остальные равны 0.
-  // Например, _BV(PCIE) для ATtiny85 означает 0b00000010.
-  GIMSK |= _BV(PCIE);
+  // Разрешаем Pin Change Interrupts на портах A и B
+  GIMSK |= _BV(PCIE0) | _BV(PCIE1);
 
-  // Когда на пине PCINT2 происходит изменение уровня (LOW → HIGH или HIGH → LOW), генерируется прерывание PCINT0_vect, и микроконтроллер просыпается.
-  PCMSK |= _BV(PCINT2) | _BV(PCINT4);  // Когда на пине PCINT2 и PCINT4 происходит изменение уровня (LOW → HIGH или HIGH → LOW), генерируется прерывание PCINT0_vect, и микроконтроллер просыпается.
+  // Включаем прерывания на PA2 и PA3 (PCINT2, PCINT3)
+  PCMSK0 |= _BV(PCINT2) | _BV(PCINT3);
 
-  power_all_disable();  // Выключаем всё ненужное
+  // Включаем прерывание на PB2 (PCINT10) — если он действительно используется (TOUCH_PIN = 2)
+  PCMSK1 |= _BV(PCINT10);
 
+  // Выключаем все ненужные модули питания
+  power_all_disable();
+
+  // Отключаем таймеры и USI (SPI/I2C)
   PRR |= _BV(PRTIM0) | _BV(PRTIM1) | _BV(PRUSI);
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);  // replaces above statement(?DW-what does this comment mean?)
 
-  sleep_enable();  // Sets the Sleep Enable bit in the MCUCR Register (SE BIT)
-  sei();           // Enable interrupts
-  sleep_cpu();     // sleep
+  // Устанавливаем режим глубокого сна (Power-down)
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
-  //This is the point in the program flow where the CPU waits in low power mode until interrupt occurs.
-  //Execution continues from this point when interrupt occurs (when probe touches and switch opens).
+  sleep_enable();  // Разрешаем сон
+  sei();           // Разрешаем прерывания
+  sleep_cpu();     // Переходим в спящий режим
 
-  cli();                                  // Disable interrupts
-  PCMSK &= ~(_BV(PCINT2) | _BV(PCINT4));  // Turn off PB2 and PB4 as interrupt pins
-  sleep_disable();                        // Clear SE bit
-  power_all_enable();
+  // Здесь программа просыпается после прерывания
 
+  cli();  // Отключаем прерывания перед очисткой
+
+  // Отключаем разрешения на Pin Change Interrupts
+  PCMSK0 &= ~(_BV(PCINT2) | _BV(PCINT3));
+  PCMSK1 &= ~_BV(PCINT10);
+  sleep_disable();  // Запрещаем дальнейший сон
+
+  power_all_enable();  // Включаем питание обратно
+
+  // Включаем обратно отключенные модули
   PRR &= ~(_BV(PRTIM0) | _BV(PRTIM1) | _BV(PRUSI));
-
-
-
 }  // sleep
 
-// volatile unsigned long lastInterruptTime = 0;
 ISR(PCINT0_vect) {
-  // unsigned long interruptTime = micros();                   // Используем микросекунды вместо
-  // if (interruptTime - lastInterruptTime > debounceDelay) {  // Дебаунс
-  // This is called when the interrupt occurs, No code is here so it immediately returns to point in program flow
-  //following the statement in the sleep() function that initially put the CPU to sleep.
+  // Обработка PA (PCIE0)
   if (digitalRead(TOUCH_PIN) == HIGH) {
     isTouch = true;
   }
-  if (irrecv.decode(&results) && results.value != 0xFFFFFFFF) {  // Проверяем, действительно ли есть сигнал
+}
+
+ISR(PCINT1_vect) {
+  // Обработка PB (PCIE1)
+  if (irrecv.decode(&results) && results.value != 0xFFFFFFFF) {
     isIRsend = true;
   }
-  // }
-  // lastInterruptTime = interruptTime;
 }
 
 bool isLowPower() {
@@ -145,7 +154,7 @@ void loop() {
   unsigned long sleepStart = millis();
   while (millis() - sleepStart < wakeTime) {
     if (digitalRead(TOUCH_PIN) == HIGH) {
-      sleepStart = millis(); 
+      sleepStart = millis();
       handleTouch();
     }
   }
