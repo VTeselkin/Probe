@@ -1,30 +1,70 @@
+/*
+ATtiny84A QFN20 pin mapping (AttinyCore - Clockwise, QFN-20):
+
+Arduino | Port | Phys.Pin | Comment
+----------------------------------------
+   0    |  PB0 |  11      | Digital pin 0
+   1    |  PB1 |  12      | Digital pin 1
+   2    |  PB2 |  14      | Digital pin 2
+   3    |  PB3 |  13      | Digital pin 3 (RESET, если не отключён)
+   4    |  PA0 |   5      | Digital pin 4 (AREF / Analog In)
+   5    |  PA1 |   4      | Digital pin 5
+   6    |  PA2 |   3      | Digital pin 6
+   7    |  PA3 |   2      | Digital pin 7
+   8    |  PA4 |   1      | Digital pin 8
+   9    |  PA5 |  20      | Digital pin 9 (PWM)
+  10    |  PA6 |  16      | Digital pin 10 (PWM)
+  11    |  PA7 |  15      | Digital pin 11 (PWM)
+
+Additional pins (QFN-20 only, **manual access via PORTB**):
+
+   -    |  PB4 |  15      | Manual use only (no Arduino pin)
+   -    |  PB5 |  16      | Manual use only (no Arduino pin)
+   -    |  PB6 |  17      | Manual use only (no Arduino pin)
+   -    |  PB7 |  18      | Manual use only (no Arduino pin)
+
+   QFN-20 Top View (Clockwise Mapping)
+
+    +----+----+
+  1 | PA4 | PA3 | 2
+ 20 | PA5 | PA2 | 3
+ 19 | NC  | PA1 | 4
+ 18 | NC  | PA0 | 5
+ 17 | NC  | NC  | 6
+ 16 | PA6 | GND | 7
+ 15 | PA7 | VCC | 8
+ 14 | PB2 | PB0 | 9
+ 13 | PB3 | PB1 | 12
+    +----+----+
+
+*/
+
+
 #include <IRremote.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <avr/power.h>
 
 
-// #define IR_LED_PIN PB0       //11      // Пин для ИК-светодиода
-// #define LOW_POW_LED_PIN PB1  //12      // Пин для led low power
-// #define TOUCH_PIN PB2        //14      // Пин для touch
-// #define LOW_POW_PIN PB3      //2       // Пин для low power
-// #define IR_RECEIVER_PIN PB4  //5       // Пин для ИК-приёмника
 #define IR_FREQ_KHZ 38
 
-// Пины, соответствующие ATtiny84
-#define IR_LED_PIN A1       // PA1 - IR светодиоды (через транзистор)
-#define LOW_POW_LED_PIN A2  // PA2 - индикатор low power (через транзистор)
-#define TOUCH_PIN 2         // PB2 - touch
-#define LOW_POW_PIN A0      // PA0 - вход низкого напряжения
-#define IR_RECEIVER_PIN A3  // PA3 - IR-приемник (data output)
+// Пины для ATtiny84 QFN-20 (Clockwise Mapping, AttinyCore)
 
+#define TOUCH_PIN 8        // PB2 - Кнопка (физический пин 14)
+
+#define LOW_POW_LED_PIN 9  // PB1 - Индикатор low power (физический пин 12)
+#define LOW_POW_PIN 7      // PA7 - Вход низкого напряжения (физический пин 15)
+
+#define IR_RECEIVER_PIN 3  // PA2 - IR-приёмник (физический пин 3)
+#define IR_SEND_PIN 10     // PB0 - IR светодиоды (физический пин 4)
+#define IRREC_POW 2         // PA3 - IR-приёмник питание (физический пин 2)
 
 // Команды
 #define CMD_REQUEST_STATUS 0xA0   // Команда для запроса статуса
 #define CMD_RESPONSE_STATUS 0xA1  // Команда для запроса статуса
 
 IRrecv irrecv(IR_RECEIVER_PIN);
-IRsend irsend(IR_LED_PIN);
+IRsend irsend;
 
 decode_results results;  // Для хранения данных от приёмника
 
@@ -40,7 +80,8 @@ volatile bool isIRsend = false;
 void setup() {
   // Настройка используемых пинов
   pinMode(TOUCH_PIN, INPUT_PULLUP);        // Кнопка с подтяжкой
-  pinMode(IR_LED_PIN, OUTPUT);             // Светодиод как выход
+
+  pinMode(IR_SEND_PIN, OUTPUT);            // Светодиод как выход
   pinMode(LOW_POW_LED_PIN, OUTPUT);        // Светодиод как выход
   pinMode(LOW_POW_PIN, INPUT);             // Вход низкого уровня заряда 1 - высокий уровень (>2.4V) 0 - низкий уровень (<2.4V)
   pinMode(IR_RECEIVER_PIN, INPUT_PULLUP);  // Вход и IR Led reciver
@@ -48,10 +89,23 @@ void setup() {
   irrecv.enableIRIn();
   irsend.enableIROut(IR_FREQ_KHZ);
 
-  digitalWrite(IR_LED_PIN, LOW);       // Выключить светодиод
+
+  digitalWrite(IR_SEND_PIN, LOW);      // Выключить светодиод
   digitalWrite(LOW_POW_LED_PIN, LOW);  // Выключить светодиод
 
   isTouch = digitalRead(TOUCH_PIN) == HIGH;
+  byte count = 3;
+  if (isTouch) {
+    count = 1;
+  }
+  for (int i = 0; i < count; i++) {
+
+    digitalWrite(LOW_POW_LED_PIN, HIGH);
+    delay(50);
+    digitalWrite(LOW_POW_LED_PIN, LOW);
+    delay(50);
+  }
+
 }  // setup
 
 void sleep() {
@@ -120,10 +174,10 @@ void handleTouch() {
     isTouch = false;
     delay(debounceDelay);
     while (digitalRead(TOUCH_PIN) == HIGH) {
-      digitalWrite(IR_LED_PIN, HIGH);  // this takes about 1 microsecond to happen
-      delayMicroseconds(12);           // hang out for 12 microseconds
-      digitalWrite(IR_LED_PIN, LOW);   // this also takes about 1 microsecond
-      delayMicroseconds(12);           // hang out for 12 microseconds
+      digitalWrite(IR_SEND_PIN, HIGH);  // this takes about 1 microsecond to happen
+      delayMicroseconds(12);            // hang out for 12 microseconds
+      digitalWrite(IR_SEND_PIN, LOW);   // this also takes about 1 microsecond
+      delayMicroseconds(12);            // hang out for 12 microseconds
       if (isLowPower() && digitalRead(LOW_POW_LED_PIN) == LOW) {
         digitalWrite(LOW_POW_LED_PIN, HIGH);
       }
@@ -149,7 +203,8 @@ void loop() {
   handleIRCommand();
   handleTouch();
   digitalWrite(LOW_POW_LED_PIN, LOW);
-  digitalWrite(IR_LED_PIN, LOW);
+  digitalWrite(IR_SEND_PIN, LOW);
+
 
   unsigned long sleepStart = millis();
   while (millis() - sleepStart < wakeTime) {
